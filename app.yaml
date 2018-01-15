@@ -6,5 +6,5 @@ handlers:
   script: index.php
 
 runtime_config:
-    document_root: .
+    document_root: ./
     php_ini_override: php.ini
