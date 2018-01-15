@@ -7,4 +7,4 @@ handlers:
 
 runtime_config:
     document_root: .
-    php_ini_override: ./php.ini
+    php_ini_override: php.ini
