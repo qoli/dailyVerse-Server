@@ -2,9 +2,8 @@ runtime: php55
 api_version: 1
 
 handlers:
-- url: /.*
+- url: /
   script: index.php
 
-runtime_config:
-    document_root: ./
-    php_ini_override: php.ini
+- url: /bible
+  script: bible.php
