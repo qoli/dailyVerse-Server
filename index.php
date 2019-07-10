@@ -16,6 +16,6 @@ if ($dayInFile == $now["mday"]) {
 		$dailyVerse = file_get_contents("dailyVerse.txt");
 		echo $dailyVerse;
 	} else {
-		echo "API Error, Please try later."
+		echo "API Error, Please try later.";
 	}
 }
