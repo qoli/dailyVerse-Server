@@ -1,14 +1,21 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
 header('Content-Type: application/json');
+header('Accept: multipart/form-data');
 require_once 'MainFunction.php';
 
-// https://bible.fhl.net/new/read.php
+$arrContextOptions=array(
+    "ssl"=>array(
+        "verify_peer"=>false,
+        "verify_peer_name"=>false,
+    ),
+); 
 
 $url = $_GET['link'] . "?chap=" . $_GET["chap"] . "&chineses=" . $_GET["chineses"];
 $ver = 'unv1';
 
-$result  = file_get_contents($url);
+$result  = url_get_contents($url);
+
 $pattern = '~<a href="listenhb.php\?version=(\d?)(.*?)">(.*?)</a>~i';
 preg_match_all($pattern, $result, $matches);
 parse_str(parse_url("listenhb.php?version=0" . $matches[2][0], PHP_URL_QUERY), $output);
@@ -27,6 +34,19 @@ $return = array(
 // dump($return);
 
 echo json_encode($return);
+
+function url_get_contents ($Url) {
+    if (!function_exists('curl_init')){ 
+        die('CURL is not installed!');
+    }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $Url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $output = curl_exec($ch);
+    curl_close($ch);
+    return $output;
+}
 
 function getVersion($verNumber = 0)
 {
