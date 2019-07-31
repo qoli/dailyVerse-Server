@@ -1,6 +1,25 @@
 <?php
 
 /**
+ * file_get_contents 的替代寫法
+ * @param string $Url
+ * @return string or bool
+ */
+
+function url_get_contents($Url) {
+    if (!function_exists('curl_init')) {
+        die('CURL is not installed!');
+    }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $Url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 移除 ssl 驗證
+    $output = curl_exec($ch);
+    curl_close($ch);
+    return $output;
+}
+
+/**
  * 格式化字符串到数组
  * @param string $String
  * @return array
@@ -217,7 +236,7 @@ function Templet_Load($File, $Folder, $BaseData = '') {
         $param = array(
             'file' => $File . EXT,
             'folder' => '/View/' . $Folder,
-            'base' => _ROOT . _APP
+            'base' => _ROOT . _APP,
         );
         echo $exc->Msg($param);
     }
@@ -256,7 +275,7 @@ function Load($File, $Folder) {
         $param = array(
             'file' => $File . EXT,
             'folder' => $Folder,
-            'base' => _ROOT . _APP
+            'base' => _ROOT . _APP,
         );
         echo $exc->Msg($param);
     }
@@ -461,7 +480,6 @@ function image_resize($f, $t, $tw = 0, $th = 0, $isCentre = 0) {
     $offset_x = 0;
     $offset_y = 0;
 
-
     if ($fw / $tw > $fh / $th) {
 
         if ($isCentre) {
@@ -478,11 +496,10 @@ function image_resize($f, $t, $tw = 0, $th = 0, $isCentre = 0) {
         $fh = $th * ($fw / $tw);
     }
 
-
     $timg = imagecreatetruecolor($tw, $th);
     imagecopyresampled($timg, $fimg, 0, 0, $offset_x, $offset_y, $tw, $th, $fw, $fh); //TODO 修改为居中支持
     if ($tmp == 'jpeg') {
-        $o = $outfunc($timg, $t,100);
+        $o = $outfunc($timg, $t, 100);
     } else {
         $o = $outfunc($timg, $t);
     }
@@ -493,7 +510,6 @@ function image_resize($f, $t, $tw = 0, $th = 0, $isCentre = 0) {
         return false;
     }
 }
-
 
 /**
  * 远程文件下载
@@ -516,10 +532,12 @@ function FileDownload($url, $Folder, $FileName = '') {
     $file = fopen($url, "rb");
     if ($file) {
         $newf = fopen($newfname, "wb");
-        if ($newf)
+        if ($newf) {
             while (!feof($file)) {
                 fwrite($newf, fread($file, 1024 * 8), 1024 * 8);
             }
+        }
+
     }
     if ($file) {
         fclose($file);
@@ -533,10 +551,10 @@ function FileDownload($url, $Folder, $FileName = '') {
 }
 
 /*
-  Utf-8、gb2312都支持的汉字截取函数
-  cut_str(字符串, 截取长度, 开始长度, 编码);
-  编码默认为 utf-8
-  开始长度默认为 0
+Utf-8、gb2312都支持的汉字截取函数
+cut_str(字符串, 截取长度, 开始长度, 编码);
+编码默认为 utf-8
+开始长度默认为 0
  */
 
 function cut_str($string, $sublen, $start = 0, $code = 'UTF-8') {
@@ -544,11 +562,12 @@ function cut_str($string, $sublen, $start = 0, $code = 'UTF-8') {
         $pa = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|\xe0[\xa0-\xbf][\x80-\xbf]|[\xe1-\xef][\x80-\xbf][\x80-\xbf]|\xf0[\x90-\xbf][\x80-\xbf][\x80-\xbf]|[\xf1-\xf7][\x80-\xbf][\x80-\xbf][\x80-\xbf]/";
         preg_match_all($pa, $string, $t_string);
 
-        if (count($t_string[0]) - $start > $sublen)
+        if (count($t_string[0]) - $start > $sublen) {
             return join('', array_slice($t_string[0], $start, $sublen)) . "";
+        }
+
         return join('', array_slice($t_string[0], $start, $sublen));
-    }
-    else {
+    } else {
         $start = $start * 2;
         $sublen = $sublen * 2;
         $strlen = strlen($string);
@@ -557,16 +576,20 @@ function cut_str($string, $sublen, $start = 0, $code = 'UTF-8') {
         for ($i = 0; $i < $strlen; $i++) {
             if ($i >= $start && $i < ($start + $sublen)) {
                 if (ord(substr($string, $i, 1)) > 129) {
-                    $tmpstr.= substr($string, $i, 2);
+                    $tmpstr .= substr($string, $i, 2);
                 } else {
-                    $tmpstr.= substr($string, $i, 1);
+                    $tmpstr .= substr($string, $i, 1);
                 }
             }
-            if (ord(substr($string, $i, 1)) > 129)
+            if (ord(substr($string, $i, 1)) > 129) {
                 $i++;
+            }
+
         }
-        if (strlen($tmpstr) < $strlen)
-            $tmpstr.= "";
+        if (strlen($tmpstr) < $strlen) {
+            $tmpstr .= "";
+        }
+
         return $tmpstr;
     }
 }
@@ -593,18 +616,16 @@ function errorShow($Text) {
     die($Text);
 }
 
-
 /**
  * 生成 6 位隨機 ID
  */
 function getRandOnlyId() {
     //新时间截定义,基于世界未日2012-12-21的时间戳。
-    $endtime=1356019200;//2012-12-21时间戳
-    $curtime=time();//当前时间戳
-    $newtime=$curtime-$endtime;//新时间戳
-    $rand=rand(0,99);//两位随机
-    $all=$rand.$newtime;
-    $onlyid=base_convert($all,10,36);//把10进制转为36进制的唯一ID
+    $endtime = 1356019200; //2012-12-21时间戳
+    $curtime = time(); //当前时间戳
+    $newtime = $curtime - $endtime; //新时间戳
+    $rand = rand(0, 99); //两位随机
+    $all = $rand . $newtime;
+    $onlyid = base_convert($all, 10, 36); //把10进制转为36进制的唯一ID
     return $onlyid;
 }
-
